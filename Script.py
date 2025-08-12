@@ -118,6 +118,7 @@ This module only works for my admins
 👩🏻‍💻 ᴜsᴇʀs: <code>{}</code>
 👥 ɢʀᴏᴜᴘs: <code>{}</code>
 🗂️ ᴏᴄᴄᴜᴘɪᴇᴅ: <code>{}</code>
+💾 ғʀᴇᴇ: <code>{}</code>
 """
     LOG_TEXT_G = """#NewGroup
 👥 ɢʀᴏᴜᴘ 👥 = {}(<code>{}</code>)
