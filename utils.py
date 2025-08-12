@@ -273,26 +273,17 @@ def parser(text: str, keyword: str) -> Tuple[str, List[List[InlineKeyboardButton
     return note_data, buttons, alerts
 
 async def search_gagala(text):
-    """
-    Searches Google for the given text and returns a list of results.
-    """
     if " " in text:
         text = text.replace(" ", "+")
-
     url = f"https://www.google.com/search?q={text}"
-
-    # Adding a user-agent to avoid being blocked by Google
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
     }
-
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(url, headers=headers, timeout=5) as response:
                 if response.status == 200:
                     soup = BeautifulSoup(await response.text(), "html.parser")
-                    # This is a basic way to parse Google search results.
-                    # It might need to be adjusted if Google changes its HTML structure.
                     results = []
                     for g in soup.find_all('div', class_='g'):
                         t = g.find('h3')
