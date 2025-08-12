@@ -1,5 +1,5 @@
 # Use a modern, slim, and supported version of Python
-FROM python:3.10
+FROM python:3.11
 
 WORKDIR /TamilanBotsZ
 
