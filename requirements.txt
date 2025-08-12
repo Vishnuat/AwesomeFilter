@@ -1,24 +1,21 @@
-# requirements.txt (Corrected with available umongo version)
+
+# requirements.txt (Corrected and Pinned)
 
 # For Telegram
-pyrogram>=2.0.30
-tgcrypto
+pyrogram==2.0.106
+tgcrypto==1.2.5
 
-# For MongoDB Database
-# Updated to modern versions compatible with Python 3.12
-pymongo==4.11.1
-dnspython==2.7.0
-marshmallow==3.20.1
+# For MongoDB Database (Pinned to compatible versions)
+pymongo[srv]==4.8.0
+motor==3.5.0
+
+# For Database Object Modeling
 umongo==3.1.0
-motor==3.7.0
-
-# For Movie Info (cleaned up conflicting versions)
-cinemagoer==2023.5.1
+marshmallow==3.21.2
 
 # Other utilities
-requests
-beautifulsoup4
-heroku3
-pynewtonmath
+aiohttp==3.9.5
+requests==2.32.3
 pytz
-aiohttp
+beautifulsoup4
+EOF
