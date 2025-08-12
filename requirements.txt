@@ -6,17 +6,14 @@ tgcrypto
 
 # For MongoDB Database
 # Updated to modern versions compatible with Python 3.12
-pymongo==4.8.0
-motor==3.5.0
-dnspython==2.6.1
-
-# For Database Object Modeling (depends on pymongo and marshmallow)
-# Corrected to the latest available version
+pymongo==4.11.1
+dnspython==2.7.0
+marshmallow==3.20.1
 umongo==3.1.0
-marshmallow==3.21.2
+motor==3.7.0
 
 # For Movie Info (cleaned up conflicting versions)
-cinemagoer
+cinemagoer==2023.5.1
 
 # Other utilities
 requests
