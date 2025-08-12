@@ -19,9 +19,6 @@ from pyrogram.errors import (
     UserIsBlocked,
     PeerIdInvalid
 )
-
-# It's better to explicitly import names instead of using a wildcard import.
-# This makes your code easier to read and debug.
 from info import (
     AUTH_CHANNEL,
     LONG_IMDB_DESCRIPTION,
@@ -32,11 +29,9 @@ from info import (
 )
 from database.users_chats_db import db
 
-# --- Setup ---
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# --- Constants ---
 BTN_URL_REGEX = re.compile(
     r"(\[([^\[]+?)\]\((buttonurl|buttonalert):(?:/{0,2})(.+?)(:same)?\))"
 )
@@ -44,15 +39,9 @@ SMART_OPEN = '“'
 SMART_CLOSE = '”'
 START_CHAR = ('\'', '"', SMART_OPEN)
 
-# --- Third-party Instances ---
 imdb = Cinemagoer()
-# Create a single session to be reused across all requests
 aiohttp_session = aiohttp.ClientSession()
 
-
-# --- In-Memory Cache ---
-# This 'temp' class acts as a simple in-memory cache.
-# Note: All data stored here will be lost when the bot restarts.
 class temp(object):
     BANNED_USERS: List[int] = []
     BANNED_CHATS: List[int] = []
@@ -64,9 +53,7 @@ class temp(object):
     B_NAME: str = None
     SETTINGS: Dict[int, Dict[str, Any]] = {}
 
-# --- Helper Functions ---
-
-def humanize_bytes(size: float) -> str:
+def get_size(size: float) -> str:
     """Converts bytes to a human-readable format (e.g., KB, MB, GB)."""
     if not size:
         return ""
@@ -79,7 +66,6 @@ def humanize_bytes(size: float) -> str:
     return f"{size:.2f} {power_labels[n]}"
 
 def list_to_str(data: list) -> str:
-    """Joins list elements into a single string, separated by commas."""
     if not data:
         return "N/A"
     if MAX_LIST_ELM and len(data) > int(MAX_LIST_ELM):
@@ -87,7 +73,6 @@ def list_to_str(data: list) -> str:
     return ", ".join(map(str, data))
 
 def get_file_id(msg: Message) -> Any:
-    """Extracts the file object from a Pyrogram Message."""
     if msg.media:
         for file_type in ("photo", "animation", "audio", "document", "video", "video_note", "voice", "sticker"):
             if obj := getattr(msg, file_type, None):
@@ -95,7 +80,6 @@ def get_file_id(msg: Message) -> Any:
     return None
 
 def extract_user(message: Message) -> Union[int, str]:
-    """Extracts the user from a message."""
     user_id = None
     if message.reply_to_message:
         user_id = message.reply_to_message.from_user.id
@@ -110,7 +94,7 @@ def extract_user(message: Message) -> Union[int, str]:
         try:
             user_id = int(user_id)
         except (ValueError, TypeError):
-            pass # Not a valid user ID
+            pass
     else:
         user_id = message.from_user.id
     return user_id
@@ -134,7 +118,6 @@ def split_quotes(text: str) -> List:
         key = text[0] + text[0]
     return list(filter(None, [key, rest]))
 
-
 def remove_escapes(text: str) -> str:
     res = ""
     is_escaped = False
@@ -148,10 +131,7 @@ def remove_escapes(text: str) -> str:
             res += char
     return res
 
-# --- Pyrogram-specific Utilities ---
-
 async def is_subscribed(bot: Client, query: Message) -> bool:
-    """Checks if a user is a member of the AUTH_CHANNEL."""
     try:
         user = await bot.get_chat_member(AUTH_CHANNEL, query.from_user.id)
         return user.status not in [enums.ChatMemberStatus.BANNED]
@@ -162,7 +142,6 @@ async def is_subscribed(bot: Client, query: Message) -> bool:
         return False
 
 async def broadcast_messages(user_id: int, message: Message) -> Tuple[bool, str]:
-    """Broadcasts a message to a user, handling common API errors."""
     try:
         await message.copy(chat_id=user_id)
         return True, "Success"
@@ -177,34 +156,23 @@ async def broadcast_messages(user_id: int, message: Message) -> Tuple[bool, str]
         logger.error(f"Error broadcasting to {user_id}: {e}")
         return False, "Error"
 
-# --- External API Functions ---
-
 async def get_poster(query: str, bulk: bool = False, id: bool = False, file: str = None) -> Union[Dict[str, Any], List[Dict[str, Any]], None]:
-    """Fetches movie/series data from IMDb."""
-    # Use asyncio.to_thread to run blocking I/O in a separate thread
     loop = asyncio.get_running_loop()
-    
     if not id:
         query = query.strip().lower()
         title = query
         year_match = re.findall(r'[1-2]\d{3}$', query, re.IGNORECASE) or \
                      (file and re.findall(r'[1-2]\d{3}', file, re.IGNORECASE))
         year = year_match[0] if year_match else None
-        
         if year:
             title = query.replace(year, "").strip()
-
         search_func = functools.partial(imdb.search_movie, title, results=10)
         movies = await loop.run_in_executor(None, search_func)
-        
         if not movies:
             return None
-
         if year:
             movies = [m for m in movies if str(m.get('year')) == year] or movies
-        
         filtered = [m for m in movies if m.get('kind') in ['movie', 'tv series']] or movies
-
         if bulk:
             return filtered
         if not filtered:
@@ -212,14 +180,11 @@ async def get_poster(query: str, bulk: bool = False, id: bool = False, file: str
         movie_id = filtered[0].movieID
     else:
         movie_id = query
-
     get_movie_func = functools.partial(imdb.get_movie, movie_id)
     movie = await loop.run_in_executor(None, get_movie_func)
-
     plot = movie.get('plot outline') if LONG_IMDB_DESCRIPTION else (movie.get('plot') and movie.get('plot')[0])
     if plot and len(plot) > 800:
         plot = plot[:800] + "..."
-
     return {
         'title': movie.get('title', 'N/A'),
         'votes': movie.get('votes', 'N/A'),
@@ -251,13 +216,10 @@ async def get_poster(query: str, bulk: bool = False, id: bool = False, file: str
     }
 
 async def get_shortlink(link: str) -> str:
-    """Shortens a URL using the configured API, if enabled."""
     if not SHORTENER_ENABLED:
         return link
-
     api_url = f'https://{SHORTNER_SITE}/api'
     params = {'api': SHORTNER_API, 'url': link}
-
     try:
         async with aiohttp_session.get(api_url, params=params, raise_for_status=True, timeout=5) as response:
             data = await response.json()
@@ -269,59 +231,45 @@ async def get_shortlink(link: str) -> str:
         logger.error("Shortlink API request timed out.")
         return link
 
-# --- Settings Cache Management ---
-
 async def get_settings(group_id: int) -> Dict[str, Any]:
-    """Retrieves settings for a group, using a cache to avoid frequent DB calls."""
     if group_id not in temp.SETTINGS:
         temp.SETTINGS[group_id] = await db.get_settings(group_id)
     return temp.SETTINGS[group_id]
 
 async def save_group_settings(group_id: int, key: str, value: Any):
-    """Saves a specific setting for a group and updates the cache."""
     settings = await get_settings(group_id)
     settings[key] = value
     temp.SETTINGS[group_id] = settings
     await db.update_settings(group_id, settings)
 
-
-# --- Text and Button Parsing ---
-
 def parser(text: str, keyword: str) -> Tuple[str, List[List[InlineKeyboardButton]], List[str]]:
-    """Parses text for custom button markup."""
     buttons = []
     alerts = []
     note_data = ""
     prev = 0
     alert_index = 0
-
     for match in BTN_URL_REGEX.finditer(text):
         n_escapes = text[:match.start(1)].count('\\')
         if n_escapes % 2 != 0:
             note_data += text[prev:match.start(1)-1]
             prev = match.start(1)
             continue
-
         note_data += text[prev:match.start(1)]
         prev = match.end(1)
-        
         btn_text = match.group(2)
         btn_type = match.group(3)
         btn_content = match.group(4)
         same_line = bool(match.group(5)) and buttons
-
         if btn_type == "buttonalert":
             callback_data = f"alertmessage:{alert_index}:{keyword}"
             button = InlineKeyboardButton(text=btn_text, callback_data=callback_data)
             alerts.append(btn_content)
             alert_index += 1
-        else: # buttonurl
+        else:
             button = InlineKeyboardButton(text=btn_text, url=btn_content.replace(" ", ""))
-
         if same_line:
             buttons[-1].append(button)
         else:
             buttons.append([button])
-
     note_data += text[prev:]
     return note_data, buttons, alerts
