@@ -1,4 +1,4 @@
-# requirements.txt (Corrected and Updated for Python 3.12)
+# requirements.txt (Corrected with available umongo version)
 
 # For Telegram
 pyrogram>=2.0.30
@@ -11,8 +11,8 @@ motor==3.5.0
 dnspython==2.6.1
 
 # For Database Object Modeling (depends on pymongo and marshmallow)
-# Updated to a version compatible with pymongo 4.x
-umongo==4.0.0
+# Corrected to the latest available version
+umongo==3.1.0
 marshmallow==3.21.2
 
 # For Movie Info (cleaned up conflicting versions)
