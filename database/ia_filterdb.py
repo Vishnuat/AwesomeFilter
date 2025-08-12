@@ -28,14 +28,13 @@ class Media(Document):
     caption = fields.StrField(allow_none=True)
 
     class Meta:
-        indexes = ('$file_name', )
+        # Using a text index for both file_name and caption for faster searches
+        indexes = ([('file_name', 'text'), ('caption', 'text')],)
         collection_name = COLLECTION_NAME
 
 
 async def save_file(media):
     """Save file in database"""
-
-    # TODO: Find better way to get same file_id for same media to avoid duplicates
     file_id, file_ref = unpack_new_file_id(media.file_id)
     file_name = re.sub(r"(_|\-|\.|\+)", " ", str(media.file_name))
     try:
@@ -54,11 +53,10 @@ async def save_file(media):
     else:
         try:
             await file.commit()
-        except DuplicateKeyError:      
+        except DuplicateKeyError:
             logger.warning(
                 f'{getattr(media, "file_name", "NO_FILE")} is already saved in database'
             )
-
             return False, 0
         else:
             logger.info(f'{getattr(media, "file_name", "NO_FILE")} is saved to database')
@@ -66,30 +64,16 @@ async def save_file(media):
 
 
 
-async def get_search_results(query, file_type=None, max_results=7, offset=0, filter=False):
+async def get_search_results(query, file_type=None, max_results=10, offset=0, filter=False):
     """For given query return (results, next_offset)"""
-
     query = query.strip()
-    #if filter:
-        #better ?
-        #query = query.replace(' ', r'(\s|\.|\+|\-|_)')
-        #raw_pattern = r'(\s|_|\-|\.|\+)' + query + r'(\s|_|\-|\.|\+)'
-    if not query:
-        raw_pattern = '.'
-    elif ' ' not in query:
-        raw_pattern = r'(\b|[\.\+\-_])' + query + r'(\b|[\.\+\-_])'
-    else:
-        raw_pattern = query.replace(' ', r'.*[\s\.\+\-_]')
-    
-    try:
-        regex = re.compile(raw_pattern, flags=re.IGNORECASE)
-    except:
-        return []
 
-    if USE_CAPTION_FILTER:
-        filter = {'$or': [{'file_name': regex}, {'caption': regex}]}
+    if not query:
+        # If the query is empty, don't use text search. Return all files.
+        filter = {}
     else:
-        filter = {'file_name': regex}
+        # Use the $text operator for full-text search
+        filter = {'$text': {'$search': query}}
 
     if file_type:
         filter['file_type'] = file_type
@@ -111,7 +95,6 @@ async def get_search_results(query, file_type=None, max_results=7, offset=0, fil
     return files, next_offset, total_results
 
 
-
 async def get_file_details(query):
     filter = {'file_id': query}
     cursor = Media.find(filter)
@@ -122,7 +105,6 @@ async def get_file_details(query):
 def encode_file_id(s: bytes) -> str:
     r = b""
     n = 0
-
     for i in s + bytes([22]) + bytes([4]):
         if i == 0:
             n += 1
@@ -130,9 +112,7 @@ def encode_file_id(s: bytes) -> str:
             if n:
                 r += b"\x00" + bytes([n])
                 n = 0
-
             r += bytes([i])
-
     return base64.urlsafe_b64encode(r).decode().rstrip("=")
 
 
