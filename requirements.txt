@@ -1,14 +1,26 @@
-git+https://github.com/Joelkb/cinemagoer
+# requirements.txt (Corrected and Updated for Python 3.12)
+
+# For Telegram
 pyrogram>=2.0.30
-imdbpy==2022.7.9
 tgcrypto
-pymongo[srv]==3.12.3
-motor==2.5.1
-marshmallow==3.14.1
-umongo==3.0.1
+
+# For MongoDB Database
+# Updated to modern versions compatible with Python 3.12
+pymongo==4.8.0
+motor==3.5.0
+dnspython==2.6.1
+
+# For Database Object Modeling (depends on pymongo and marshmallow)
+# Updated to a version compatible with pymongo 4.x
+umongo==4.0.0
+marshmallow==3.21.2
+
+# For Movie Info (cleaned up conflicting versions)
 cinemagoer
+
+# Other utilities
 requests
-bs4
+beautifulsoup4
 heroku3
 pynewtonmath
 pytz
