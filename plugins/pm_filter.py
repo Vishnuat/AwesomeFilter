@@ -577,18 +577,22 @@ async def cb_handler(client: Client, query: CallbackQuery):
             InlineKeyboardButton('♻️', callback_data='rfrsh')
         ]]
         reply_markup = InlineKeyboardMarkup(buttons)
-        total = await Media.count_documents()
-        users = await db.total_users_count()
-        chats = await db.total_chat_count()
-        monsize = await db.get_db_size()
-        free = 536870912 - monsize
-        monsize = get_size(monsize)
-        free = get_size(free)
-        await query.message.edit_text(
-            text=script.STATUS_TXT.format(total, users, chats, monsize, free),
-            reply_markup=reply_markup,
-            parse_mode=enums.ParseMode.HTML
-        )
+        try:
+            total = await Media.count_documents()
+            users = await db.total_users_count()
+            chats = await db.total_chat_count()
+            monsize = await db.get_db_size()
+            free = 536870912 - monsize
+            monsize = get_size(monsize)
+            free = get_size(free)
+            await query.message.edit_text(
+                text=script.STATUS_TXT.format(total, users, chats, monsize, free),
+                reply_markup=reply_markup,
+                parse_mode=enums.ParseMode.HTML
+            )
+        except Exception as e:
+            await query.message.edit_text(f"An error occurred: `{e}`")
+
     elif query.data == "rfrsh":
         await query.answer("Fetching MongoDb DataBase")
         buttons = [[
@@ -596,18 +600,22 @@ async def cb_handler(client: Client, query: CallbackQuery):
             InlineKeyboardButton('♻️', callback_data='rfrsh')
         ]]
         reply_markup = InlineKeyboardMarkup(buttons)
-        total = await Media.count_documents()
-        users = await db.total_users_count()
-        chats = await db.total_chat_count()
-        monsize = await db.get_db_size()
-        free = 536870912 - monsize
-        monsize = get_size(monsize)
-        free = get_size(free)
-        await query.message.edit_text(
-            text=script.STATUS_TXT.format(total, users, chats, monsize, free),
-            reply_markup=reply_markup,
-            parse_mode=enums.ParseMode.HTML
-        )
+        try:
+            total = await Media.count_documents()
+            users = await db.total_users_count()
+            chats = await db.total_chat_count()
+            monsize = await db.get_db_size()
+            free = 536870912 - monsize
+            monsize = get_size(monsize)
+            free = get_size(free)
+            await query.message.edit_text(
+                text=script.STATUS_TXT.format(total, users, chats, monsize, free),
+                reply_markup=reply_markup,
+                parse_mode=enums.ParseMode.HTML
+            )
+        except Exception as e:
+            await query.message.edit_text(f"An error occurred: `{e}`")
+
     elif query.data.startswith("setgs"):
         ident, set_type, status, grp_id = query.data.split("#")
         grpid = await active_connection(str(query.from_user.id))
