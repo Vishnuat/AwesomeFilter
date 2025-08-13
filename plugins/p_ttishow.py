@@ -14,13 +14,14 @@ from pyrogram.errors import ChatAdminRequired
 async def save_group(bot, message):
     r_j_check = [u.id for u in message.new_chat_members]
     if temp.ME in r_j_check:
+        # Always check and update chat information, even if the bot is re-added
         if not await db.get_chat(message.chat.id):
             total=await bot.get_chat_members_count(message.chat.id)
-            r_j = message.from_user.mention if message.from_user else "Anonymous" 
-            await bot.send_message(LOG_CHANNEL, script.LOG_TEXT_G.format(message.chat.title, message.chat.id, total, r_j))       
+            r_j = message.from_user.mention if message.from_user else "Anonymous"
+            await bot.send_message(LOG_CHANNEL, script.LOG_TEXT_G.format(message.chat.title, message.chat.id, total, r_j))
             await db.add_chat(message.chat.id, message.chat.title)
+        
         if message.chat.id in temp.BANNED_CHATS:
-            # Inspired from a boat of a banana tree
             buttons = [[
                 InlineKeyboardButton('sᴜᴘᴘᴏʀᴛ', url=f'https://t.me/{SUPPORT_CHAT}')
             ]]
@@ -36,13 +37,14 @@ async def save_group(bot, message):
                 pass
             await bot.leave_chat(message.chat.id)
             return
+        
         buttons = [[
             InlineKeyboardButton('ℹ️ Hᴇʟᴘ ℹ️', url=f"https://t.me/{temp.U_NAME}?start=help"),
             InlineKeyboardButton('📢 ᴜᴘᴅᴀᴛᴇs 📢', url='https://t.me/TamilanBotsZ')
         ]]
         reply_markup=InlineKeyboardMarkup(buttons)
         await message.reply_text(
-            text=f"<b>ᴛʜᴀɴᴋs ғᴏʀ ᴀᴅᴅɪɴɢ ᴍᴇ ɪɴ {message.chat.title} ❣️\n\nɪғ ᴜ ᴀsᴋ ǫᴜᴇsᴛɪᴏɴs & ᴅᴏᴜʙᴛs ɪɴ sᴜᴘᴘᴏʀᴛ</b>",
+            text=f"<b>ᴛʜᴀɴᴋs ғᴏʀ ᴀᴅᴅɪɴɢ ᴍᴇ ɪɴ {message.chat.title} ❣️\n\nɪғ ᴜ ᴀsᴋ ǫᴜᴇsᴛɪᴏns & ᴅᴏᴜʙᴛs ɪɴ sᴜᴘᴘᴏʀᴛ</b>",
             reply_markup=reply_markup)
     else:
         settings = await get_settings(message.chat.id)
@@ -110,7 +112,7 @@ async def disable_chat(bot, message):
         ]]
         reply_markup=InlineKeyboardMarkup(buttons)
         await bot.send_message(
-            chat_id=chat_, 
+            chat_id=chat_,
             text=f'<b>ʜᴇʟʟᴏ ғʀɪᴇɴᴅ, \nMʏ ᴀᴅᴍɪɴ ʜᴀꜱ ᴛᴏʟᴅ ᴍᴇ ᴛᴏ ʟᴇᴀᴠᴇ ғʀᴏᴍ ɢʀᴏᴜᴘ ꜱᴏ ɪ ɢᴏ! Iғ ʏᴏᴜ ᴡᴀɴɴᴀ ᴀᴅᴅ ᴍᴇ ᴀɢᴀɪɴ ᴄᴏɴᴛᴀᴄᴛ ᴍʏ ꜱᴜᴘᴘᴏʀᴛ ɢʀᴏᴜᴘ.</b> \nReason : <code>{reason}</code>',
             reply_markup=reply_markup)
         await bot.leave_chat(chat_)
@@ -153,28 +155,8 @@ async def get_ststs(bot, message):
         await rju.edit(f"An error occurred: `{e}`")
 
 
-# a function for trespassing into others groups, Inspired by a Vazha
-# Not to be used , But Just to showcase his vazhatharam.
-# @Client.on_message(filters.command('invite') & filters.user(ADMINS))
-async def gen_invite(bot, message):
-    if len(message.command) == 1:
-        return await message.reply('ɢɪᴠᴇ ᴍᴇ ᴀ ᴄʜᴀᴛ ɪᴅ')
-    chat = message.command[1]
-    try:
-        chat = int(chat)
-    except:
-        return await message.reply('ɢɪᴠᴇ ᴍᴇ ᴀ ᴠᴀʟɪᴅ ᴄʜᴀᴛ ɪᴅ')
-    try:
-        link = await bot.create_chat_invite_link(chat)
-    except ChatAdminRequired:
-        return await message.reply("Iɴᴠɪᴛᴇ Lɪɴᴋ Gᴇɴᴇʀᴀᴛɪᴏɴ Fᴀɪʟᴇᴅ, Iᴀᴍ Nᴏᴛ Hᴀᴠɪɴɢ Sᴜғғɪᴄɪᴇɴᴛ Rɪɢʜᴛꜱ")
-    except Exception as e:
-        return await message.reply(f'Error {e}')
-    await message.reply(f'ʜᴇʀᴇ ᴜʀ ɪɴᴠɪᴛᴇ ʟɪɴᴋ {link.invite_link}')
-
 @Client.on_message(filters.command('ban') & filters.user(ADMINS))
 async def ban_a_user(bot, message):
-    # https://t.me/GetTGLink/4185
     if len(message.command) == 1:
         return await message.reply('ɢɪᴠᴇ ᴍᴇ ᴀ ɪᴅ/ᴜsᴇʀɴᴀᴍᴇ')
     r = message.text.split(None)
@@ -205,7 +187,7 @@ async def ban_a_user(bot, message):
         await message.reply(f"sᴜᴄᴄᴇssғᴜʟʟʏ ʙᴀɴɴᴇᴅ {k.mention}")
 
 
-    
+
 @Client.on_message(filters.command('unban') & filters.user(ADMINS))
 async def unban_a_user(bot, message):
     if len(message.command) == 1:
@@ -238,10 +220,9 @@ async def unban_a_user(bot, message):
         await message.reply(f"sᴜᴄᴄᴇsғᴜʟʟʏ ʙᴀɴɴᴇᴅ {k.mention}")
 
 
-    
+
 @Client.on_message(filters.command('users') & filters.user(ADMINS))
 async def list_users(bot, message):
-    # https://t.me/GetTGLink/4184
     raju = await message.reply('ɢᴇᴛᴛɪɴɢ ʟɪsᴛs ᴏғ ᴜsᴇʀs')
     users = await db.get_all_users()
     out = "ᴜsᴇʀs sᴀᴠᴇᴅ ɪɴ ᴍʏ ᴅʙ:\n\n"
